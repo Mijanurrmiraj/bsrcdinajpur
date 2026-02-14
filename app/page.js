@@ -1,70 +1,41 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { fabric } from "fabric";
 
 export default function Home() {
 
   const canvasRef = useRef(null);
-
-  const frameRef = useRef(null);
-
-  const [userImage, setUserImage] = useState(null);
-
-  const [position, setPosition] = useState({ x: 300, y: 300 });
-
-  const [scale, setScale] = useState(1);
-
-  const [dragging, setDragging] = useState(false);
-
-  const CANVAS_SIZE = 1080;
-
+  const fabricRef = useRef(null);
 
   useEffect(() => {
 
-    const frame = new Image();
+    const canvas = new fabric.Canvas("canvas", {
+      width: 1080,
+      height: 1080,
+      backgroundColor: "#7A0C1C",
+    });
 
-    frame.src = "/frame.png";
+    fabricRef.current = canvas;
 
-    frame.onload = () => {
+    // load frame
+    fabric.Image.fromURL("/frame.png", (img) => {
 
-      frameRef.current = frame;
+      img.set({
+        selectable: false,
+        evented: false,
+        left: 0,
+        top: 0,
+        scaleX: 1080 / img.width,
+        scaleY: 1080 / img.height,
+      });
 
-      draw();
+      canvas.add(img);
+      canvas.sendToBack(img);
 
-    };
+    });
 
   }, []);
-
-
-  const draw = () => {
-
-    const canvas = canvasRef.current;
-
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = CANVAS_SIZE;
-    canvas.height = CANVAS_SIZE;
-
-    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-    if (userImage) {
-
-      const width = userImage.width * scale;
-      const height = userImage.height * scale;
-
-      ctx.drawImage(userImage, position.x, position.y, width, height);
-
-    }
-
-    if (frameRef.current) {
-
-      ctx.drawImage(frameRef.current, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-    }
-
-  };
 
 
   const upload = (e) => {
@@ -75,21 +46,23 @@ export default function Home() {
 
     reader.onload = () => {
 
-      const img = new Image();
+      fabric.Image.fromURL(reader.result, (img) => {
 
-      img.src = reader.result;
+        img.set({
+          left: 200,
+          top: 200,
+          cornerColor: "red",
+          cornerSize: 20,
+          transparentCorners: false,
+        });
 
-      img.onload = () => {
+        img.scaleToWidth(500);
 
-        setUserImage(img);
+        fabricRef.current.add(img);
 
-        setPosition({ x: 200, y: 200 });
+        fabricRef.current.setActiveObject(img);
 
-        setScale(0.8);
-
-        setTimeout(draw, 100);
-
-      };
+      });
 
     };
 
@@ -98,45 +71,18 @@ export default function Home() {
   };
 
 
-  const startDrag = () => setDragging(true);
-
-  const stopDrag = () => setDragging(false);
-
-
-  const move = (clientX, clientY) => {
-
-    if (!dragging) return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-
-    const x = (clientX - rect.left) * (CANVAS_SIZE / rect.width);
-    const y = (clientY - rect.top) * (CANVAS_SIZE / rect.height);
-
-    setPosition({ x, y });
-
-    draw();
-
-  };
-
-
-  const mouseMove = (e) => move(e.clientX, e.clientY);
-
-  const touchMove = (e) => {
-
-    const touch = e.touches[0];
-
-    move(touch.clientX, touch.clientY);
-
-  };
-
-
   const download = () => {
+
+    const url = fabricRef.current.toDataURL({
+      format: "png",
+      quality: 1,
+    });
 
     const link = document.createElement("a");
 
     link.download = "bsap-frame-HD.png";
 
-    link.href = canvasRef.current.toDataURL("image/png", 1.0);
+    link.href = url;
 
     link.click();
 
@@ -160,18 +106,11 @@ export default function Home() {
       <br /><br />
 
       <canvas
-        ref={canvasRef}
-        onMouseDown={startDrag}
-        onMouseUp={stopDrag}
-        onMouseMove={mouseMove}
-        onTouchStart={startDrag}
-        onTouchEnd={stopDrag}
-        onTouchMove={touchMove}
+        id="canvas"
         style={{
           width: "350px",
           height: "350px",
-          border: "3px solid white",
-          cursor: "move"
+          border: "3px solid white"
         }}
       />
 
@@ -183,8 +122,7 @@ export default function Home() {
           padding: "12px 25px",
           background: "red",
           color: "white",
-          border: "none",
-          fontSize: "16px"
+          border: "none"
         }}
       >
         HD Download
