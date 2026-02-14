@@ -6,23 +6,31 @@ export default function Home() {
 
   const canvasRef = useRef(null);
 
-  const [image, setImage] = useState(null);
+  const frameRef = useRef(null);
 
-  const [position, setPosition] = useState({ x: 100, y: 100 });
+  const [userImage, setUserImage] = useState(null);
+
+  const [position, setPosition] = useState({ x: 300, y: 300 });
+
+  const [scale, setScale] = useState(1);
 
   const [dragging, setDragging] = useState(false);
 
-  const frame = useRef(null);
+  const CANVAS_SIZE = 1080;
 
 
   useEffect(() => {
 
-    const img = new Image();
-    img.src = "/frame.png";
+    const frame = new Image();
 
-    img.onload = () => {
-      frame.current = img;
+    frame.src = "/frame.png";
+
+    frame.onload = () => {
+
+      frameRef.current = frame;
+
       draw();
+
     };
 
   }, []);
@@ -36,17 +44,24 @@ export default function Home() {
 
     const ctx = canvas.getContext("2d");
 
-    canvas.width = 350;
-    canvas.height = 350;
+    canvas.width = CANVAS_SIZE;
+    canvas.height = CANVAS_SIZE;
 
-    ctx.clearRect(0, 0, 350, 350);
+    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    if (image) {
-      ctx.drawImage(image, position.x, position.y, 200, 200);
+    if (userImage) {
+
+      const width = userImage.width * scale;
+      const height = userImage.height * scale;
+
+      ctx.drawImage(userImage, position.x, position.y, width, height);
+
     }
 
-    if (frame.current) {
-      ctx.drawImage(frame.current, 0, 0, 350, 350);
+    if (frameRef.current) {
+
+      ctx.drawImage(frameRef.current, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
     }
 
   };
@@ -65,8 +80,15 @@ export default function Home() {
       img.src = reader.result;
 
       img.onload = () => {
-        setImage(img);
-        draw();
+
+        setUserImage(img);
+
+        setPosition({ x: 200, y: 200 });
+
+        setScale(0.8);
+
+        setTimeout(draw, 100);
+
       };
 
     };
@@ -80,14 +102,15 @@ export default function Home() {
 
   const stopDrag = () => setDragging(false);
 
-  const onMove = (e) => {
+
+  const move = (clientX, clientY) => {
 
     if (!dragging) return;
 
     const rect = canvasRef.current.getBoundingClientRect();
 
-    const x = e.clientX - rect.left - 100;
-    const y = e.clientY - rect.top - 100;
+    const x = (clientX - rect.left) * (CANVAS_SIZE / rect.width);
+    const y = (clientY - rect.top) * (CANVAS_SIZE / rect.height);
 
     setPosition({ x, y });
 
@@ -96,13 +119,24 @@ export default function Home() {
   };
 
 
+  const mouseMove = (e) => move(e.clientX, e.clientY);
+
+  const touchMove = (e) => {
+
+    const touch = e.touches[0];
+
+    move(touch.clientX, touch.clientY);
+
+  };
+
+
   const download = () => {
 
     const link = document.createElement("a");
 
-    link.download = "bsap-frame.png";
+    link.download = "bsap-frame-HD.png";
 
-    link.href = canvasRef.current.toDataURL();
+    link.href = canvasRef.current.toDataURL("image/png", 1.0);
 
     link.click();
 
@@ -115,8 +149,8 @@ export default function Home() {
       textAlign: "center",
       background: "#7A0C1C",
       minHeight: "100vh",
-      color: "white",
-      padding: "20px"
+      padding: "20px",
+      color: "white"
     }}>
 
       <h2>৮ম প্রতিষ্ঠাতা বার্ষিকী ফ্রেম</h2>
@@ -129,24 +163,13 @@ export default function Home() {
         ref={canvasRef}
         onMouseDown={startDrag}
         onMouseUp={stopDrag}
-        onMouseMove={onMove}
+        onMouseMove={mouseMove}
         onTouchStart={startDrag}
         onTouchEnd={stopDrag}
-        onTouchMove={(e) => {
-
-          const rect = canvasRef.current.getBoundingClientRect();
-
-          const touch = e.touches[0];
-
-          const x = touch.clientX - rect.left - 100;
-          const y = touch.clientY - rect.top - 100;
-
-          setPosition({ x, y });
-
-          draw();
-
-        }}
+        onTouchMove={touchMove}
         style={{
+          width: "350px",
+          height: "350px",
           border: "3px solid white",
           cursor: "move"
         }}
@@ -154,8 +177,17 @@ export default function Home() {
 
       <br /><br />
 
-      <button onClick={download}>
-        Download
+      <button
+        onClick={download}
+        style={{
+          padding: "12px 25px",
+          background: "red",
+          color: "white",
+          border: "none",
+          fontSize: "16px"
+        }}
+      >
+        HD Download
       </button>
 
     </div>
