@@ -9,9 +9,7 @@ export default function Home() {
   const fabricCanvas = useRef(null);
   const frameObj = useRef(null);
 
-  const [canvasSize, setCanvasSize] = useState(350);
-
-  const ORIGINAL_SIZE = 2048; // আপনার frame.png resolution (change if needed)
+  const ORIGINAL_SIZE = 2048;
 
   // responsive resize
   useEffect(() => {
@@ -22,16 +20,13 @@ export default function Home() {
 
       const width = containerRef.current.offsetWidth;
 
-      setCanvasSize(width);
-
       if (fabricCanvas.current) {
 
         fabricCanvas.current.setZoom(width / ORIGINAL_SIZE);
-
         fabricCanvas.current.setWidth(width);
         fabricCanvas.current.setHeight(width);
-
         fabricCanvas.current.renderAll();
+
       }
     };
 
@@ -44,20 +39,18 @@ export default function Home() {
   }, []);
 
 
-  // init fabric canvas
+  // init canvas
   useEffect(() => {
 
     const canvas = new fabric.Canvas("canvas", {
 
       width: ORIGINAL_SIZE,
       height: ORIGINAL_SIZE,
-      selection: true
 
     });
 
     fabricCanvas.current = canvas;
 
-    // load frame
     fabric.Image.fromURL("/frame.png", (img) => {
 
       img.scaleToWidth(ORIGINAL_SIZE);
@@ -70,21 +63,12 @@ export default function Home() {
         selectable: false,
         evented: false,
 
-        lockMovementX: true,
-        lockMovementY: true,
-        lockScalingX: true,
-        lockScalingY: true,
-        lockRotation: true
-
       });
 
       frameObj.current = img;
 
       canvas.add(img);
-
       canvas.bringToFront(img);
-
-      canvas.renderAll();
 
     });
 
@@ -111,10 +95,6 @@ export default function Home() {
           left: ORIGINAL_SIZE * 0.15,
           top: ORIGINAL_SIZE * 0.15,
 
-          cornerStyle: "circle",
-          cornerColor: "red",
-          borderColor: "white"
-
         });
 
         fabricCanvas.current.add(img);
@@ -122,8 +102,6 @@ export default function Home() {
         fabricCanvas.current.setActiveObject(img);
 
         fabricCanvas.current.bringToFront(frameObj.current);
-
-        fabricCanvas.current.renderAll();
 
       });
 
@@ -134,43 +112,19 @@ export default function Home() {
   };
 
 
-  // HD Download (Original Quality)
+  // download
   const download = () => {
 
-    const canvas = fabricCanvas.current;
-
-    // save current view
-    const zoom = canvas.getZoom();
-    const width = canvas.getWidth();
-    const height = canvas.getHeight();
-
-    // set original resolution
-    canvas.setZoom(1);
-    canvas.setWidth(ORIGINAL_SIZE);
-    canvas.setHeight(ORIGINAL_SIZE);
-
-    canvas.renderAll();
-
-    const dataURL = canvas.toDataURL({
+    const dataURL = fabricCanvas.current.toDataURL({
 
       format: "png",
-      quality: 1,
-      multiplier: 1
+      quality: 1
 
     });
 
-    // restore responsive view
-    canvas.setZoom(zoom);
-    canvas.setWidth(width);
-    canvas.setHeight(height);
-
-    canvas.renderAll();
-
-    // download
     const link = document.createElement("a");
 
     link.href = dataURL;
-
     link.download = "bsap-frame-HD.png";
 
     link.click();
@@ -200,9 +154,7 @@ export default function Home() {
 
 
         <div ref={containerRef} style={styles.canvasContainer}>
-
           <canvas id="canvas"/>
-
         </div>
 
 
@@ -210,56 +162,40 @@ export default function Home() {
           HD Download
         </button>
 
-    <div style={styles.footer}>
 
-  <p style={{margin: "6px 0"}}>
-    Powered by <b>BSRC Dinajpur</b>
-  </p>
+        {/* FOOTER */}
+        <div style={styles.footer}>
 
-  <p style={{margin: "6px 0"}}>
-    Developer:{" "}
-    <a
-      href="https://facebook.com/mijanurrmiraj"
-      target="_blank"
-      rel="noopener noreferrer"
-      style={styles.link}
-    >
-      Miraj
-    </a>
-  </p>
+          <p>
+            Powered by <b>BSRC Dinajpur</b>
+          </p>
 
-</div>
+          <p>
+            Developer:{" "}
+            <a
+              href="https://facebook.com/mijanurrmiraj"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.link}
+            >
+              Miraj
+            </a>
+          </p>
+
+        </div>
+
+
+      </div>
+
+    </div>
 
   );
 
 }
 
 
-const styles = {footer: {
+const styles = {
 
-  marginTop: "15px",
-
-  paddingTop: "10px",
-
-  borderTop: "1px solid rgba(255,255,255,0.3)",
-
-  color: "#ffcccc",
-
-  fontSize: "14px",
-
-},
-
-link: {
-
-  color: "#ffffff",
-
-  textDecoration: "none",
-
-  fontWeight: "bold",
-
-},
-
-}
   container: {
 
     minHeight: "100vh",
@@ -274,7 +210,6 @@ link: {
     padding: "15px"
 
   },
-
 
   card: {
 
@@ -293,7 +228,6 @@ link: {
 
   },
 
-
   title: {
 
     color: "white",
@@ -301,14 +235,12 @@ link: {
 
   },
 
-
   subtitle: {
 
     color: "#ffcccc",
     marginBottom: "15px"
 
   },
-
 
   uploadBtn: {
 
@@ -328,7 +260,6 @@ link: {
 
   },
 
-
   canvasContainer: {
 
     width: "100%",
@@ -343,7 +274,6 @@ link: {
     marginBottom: "15px"
 
   },
-
 
   downloadBtn: {
 
@@ -362,6 +292,30 @@ link: {
     fontSize: "16px",
 
     cursor: "pointer"
+
+  },
+
+  footer: {
+
+    marginTop: "15px",
+
+    paddingTop: "10px",
+
+    borderTop: "1px solid rgba(255,255,255,0.3)",
+
+    color: "#ffcccc",
+
+    fontSize: "14px",
+
+  },
+
+  link: {
+
+    color: "#ffffff",
+
+    textDecoration: "none",
+
+    fontWeight: "bold",
 
   }
 
