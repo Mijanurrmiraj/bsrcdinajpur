@@ -210,9 +210,25 @@ export default function Home() {
           HD Download
         </button>
 
-      </div>
+     <div style={styles.footer}>
 
-    </div>
+  <p>
+    Powered by <b>BSRC Dinajpur</b>
+  </p>
+
+  <p>
+    Developer:{" "}
+    <a
+      href="https://facebook.com/mijanurrmiraj"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={styles.link}
+    >
+      Miraj
+    </a>
+  </p>
+
+</div>
 
   );
 
