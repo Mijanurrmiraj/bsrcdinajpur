@@ -1,32 +1,74 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 
 export default function Home() {
 
+  const canvasEl = useRef(null);
+  const containerRef = useRef(null);
   const fabricCanvas = useRef(null);
   const frameObj = useRef(null);
 
+  const CANVAS_SIZE = 1080;
+
+  const [canvasWidth, setCanvasWidth] = useState(350);
+
+
+  // Responsive resize
+  useEffect(() => {
+
+    const resizeCanvas = () => {
+
+      const width = containerRef.current.offsetWidth;
+
+      setCanvasWidth(width);
+
+      if (fabricCanvas.current) {
+
+        fabricCanvas.current.setZoom(width / CANVAS_SIZE);
+
+        fabricCanvas.current.setWidth(width);
+        fabricCanvas.current.setHeight(width);
+
+      }
+
+    };
+
+    resizeCanvas();
+
+    window.addEventListener("resize", resizeCanvas);
+
+    return () =>
+      window.removeEventListener("resize", resizeCanvas);
+
+  }, []);
+
+
+  // Initialize fabric
   useEffect(() => {
 
     const canvas = new fabric.Canvas("canvas", {
-      width: 1080,
-      height: 1080,
+
+      width: CANVAS_SIZE,
+      height: CANVAS_SIZE,
       selection: false
+
     });
 
     fabricCanvas.current = canvas;
 
     fabric.Image.fromURL("/frame.png", (img) => {
 
-      img.scaleToWidth(1080);
+      img.scaleToWidth(CANVAS_SIZE);
 
       img.set({
+
         left: 0,
         top: 0,
         selectable: false,
         evented: false
+
       });
 
       frameObj.current = img;
@@ -39,6 +81,7 @@ export default function Home() {
   }, []);
 
 
+  // Upload image
   const upload = (e) => {
 
     const file = e.target.files[0];
@@ -51,18 +94,20 @@ export default function Home() {
 
       fabric.Image.fromURL(reader.result, (img) => {
 
-        img.scaleToWidth(600);
+        img.scaleToWidth(500);
 
         img.set({
-          left: 240,
-          top: 240,
-          cornerSize: 18,
-          cornerColor: "#ff0000",
-          borderColor: "#ffffff",
-          cornerStyle: "circle"
+
+          left: 300,
+          top: 300,
+          cornerStyle: "circle",
+          cornerColor: "red",
+          borderColor: "white"
+
         });
 
         fabricCanvas.current.add(img);
+
         fabricCanvas.current.setActiveObject(img);
 
         fabricCanvas.current.bringToFront(frameObj.current);
@@ -76,16 +121,20 @@ export default function Home() {
   };
 
 
+  // Download HD
   const download = () => {
 
-    const url = fabricCanvas.current.toDataURL({
-      format: "png",
-      quality: 1
-    });
+    const data =
+      fabricCanvas.current.toDataURL({
+
+        format: "png",
+        quality: 1
+
+      });
 
     const link = document.createElement("a");
 
-    link.href = url;
+    link.href = data;
     link.download = "bsap-frame.png";
 
     link.click();
@@ -104,7 +153,7 @@ export default function Home() {
         </h1>
 
         <p style={styles.subtitle}>
-          ৮ম প্রতিষ্ঠাতা বার্ষিকী প্রোফাইল ফ্রেম
+          ৮ম প্রতিষ্ঠাতা বার্ষিকী ফ্রেম
         </p>
 
 
@@ -112,15 +161,21 @@ export default function Home() {
           ছবি আপলোড করুন
           <input
             type="file"
-            onChange={upload}
             hidden
+            onChange={upload}
           />
         </label>
 
 
-        <div style={styles.canvasBox}>
+        <div
+          ref={containerRef}
+          style={styles.canvasContainer}
+        >
 
-          <canvas id="canvas" style={styles.canvas}/>
+          <canvas
+            id="canvas"
+            ref={canvasEl}
+          />
 
         </div>
 
@@ -156,33 +211,33 @@ const styles = {
 
     alignItems: "center",
 
-    padding: "20px"
+    padding: "15px"
 
   },
 
 
   card: {
 
+    width: "100%",
+    maxWidth: "420px",
+
     background: "rgba(255,255,255,0.05)",
 
-    backdropFilter: "blur(10px)",
-
-    padding: "30px",
+    padding: "20px",
 
     borderRadius: "15px",
 
     textAlign: "center",
 
-    boxShadow: "0 0 30px rgba(255,0,0,0.4)"
+    boxShadow: "0 0 20px red"
 
   },
 
 
   title: {
 
-    color: "#fff",
-
-    marginBottom: "5px"
+    color: "white",
+    fontSize: "22px"
 
   },
 
@@ -190,70 +245,62 @@ const styles = {
   subtitle: {
 
     color: "#ffcccc",
-
-    marginBottom: "20px"
+    fontSize: "16px",
+    marginBottom: "15px"
 
   },
 
 
   uploadBtn: {
 
-    display: "inline-block",
+    display: "block",
 
-    padding: "12px 25px",
+    background: "red",
 
-    background:
-      "linear-gradient(45deg,#ff0000,#b30000)",
-
-    color: "#fff",
+    padding: "12px",
 
     borderRadius: "8px",
 
-    cursor: "pointer",
+    marginBottom: "15px",
 
-    marginBottom: "20px"
+    color: "white",
+
+    cursor: "pointer"
 
   },
 
 
-  canvasBox: {
+  canvasContainer: {
+
+    width: "100%",
+    aspectRatio: "1/1",
 
     border: "2px solid red",
 
     borderRadius: "10px",
 
-    boxShadow: "0 0 20px red",
+    overflow: "hidden",
 
-    marginBottom: "20px"
-
-  },
-
-
-  canvas: {
-
-    width: "350px",
-
-    height: "350px"
+    marginBottom: "15px"
 
   },
 
 
   downloadBtn: {
 
-    padding: "12px 30px",
+    width: "100%",
 
-    background:
-      "linear-gradient(45deg,#ff0000,#660000)",
+    padding: "12px",
 
-    color: "#fff",
+    background: "darkred",
+
+    color: "white",
 
     border: "none",
 
     borderRadius: "8px",
 
-    fontSize: "16px",
-
-    cursor: "pointer"
+    fontSize: "16px"
 
   }
 
