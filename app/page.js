@@ -5,33 +5,34 @@ import { fabric } from "fabric";
 
 export default function Home() {
 
-  const canvasRef = useRef(null);
-  const fabricRef = useRef(null);
+  const fabricCanvas = useRef(null);
+  const frameObj = useRef(null);
 
   useEffect(() => {
 
     const canvas = new fabric.Canvas("canvas", {
       width: 1080,
       height: 1080,
-      backgroundColor: "#7A0C1C",
+      selection: false
     });
 
-    fabricRef.current = canvas;
+    fabricCanvas.current = canvas;
 
-    // load frame
     fabric.Image.fromURL("/frame.png", (img) => {
 
+      img.scaleToWidth(1080);
+
       img.set({
-        selectable: false,
-        evented: false,
         left: 0,
         top: 0,
-        scaleX: 1080 / img.width,
-        scaleY: 1080 / img.height,
+        selectable: false,
+        evented: false
       });
 
+      frameObj.current = img;
+
       canvas.add(img);
-      canvas.sendToBack(img);
+      canvas.bringToFront(img);
 
     });
 
@@ -42,25 +43,29 @@ export default function Home() {
 
     const file = e.target.files[0];
 
+    if (!file) return;
+
     const reader = new FileReader();
 
     reader.onload = () => {
 
       fabric.Image.fromURL(reader.result, (img) => {
 
+        img.scaleToWidth(600);
+
         img.set({
-          left: 200,
-          top: 200,
-          cornerColor: "red",
-          cornerSize: 20,
-          transparentCorners: false,
+          left: 240,
+          top: 240,
+          cornerSize: 18,
+          cornerColor: "#ff0000",
+          borderColor: "#ffffff",
+          cornerStyle: "circle"
         });
 
-        img.scaleToWidth(500);
+        fabricCanvas.current.add(img);
+        fabricCanvas.current.setActiveObject(img);
 
-        fabricRef.current.add(img);
-
-        fabricRef.current.setActiveObject(img);
+        fabricCanvas.current.bringToFront(frameObj.current);
 
       });
 
@@ -73,16 +78,15 @@ export default function Home() {
 
   const download = () => {
 
-    const url = fabricRef.current.toDataURL({
+    const url = fabricCanvas.current.toDataURL({
       format: "png",
-      quality: 1,
+      quality: 1
     });
 
     const link = document.createElement("a");
 
-    link.download = "bsap-frame-HD.png";
-
     link.href = url;
+    link.download = "bsap-frame.png";
 
     link.click();
 
@@ -91,45 +95,166 @@ export default function Home() {
 
   return (
 
-    <div style={{
-      textAlign: "center",
-      background: "#7A0C1C",
-      minHeight: "100vh",
-      padding: "20px",
-      color: "white"
-    }}>
+    <div style={styles.container}>
 
-      <h2>৮ম প্রতিষ্ঠাতা বার্ষিকী ফ্রেম</h2>
+      <div style={styles.card}>
 
-      <input type="file" onChange={upload} />
+        <h1 style={styles.title}>
+          বাংলাদেশ ছাত্র অধিকার পরিষদ
+        </h1>
 
-      <br /><br />
+        <p style={styles.subtitle}>
+          ৮ম প্রতিষ্ঠাতা বার্ষিকী প্রোফাইল ফ্রেম
+        </p>
 
-      <canvas
-        id="canvas"
-        style={{
-          width: "350px",
-          height: "350px",
-          border: "3px solid white"
-        }}
-      />
 
-      <br /><br />
+        <label style={styles.uploadBtn}>
+          ছবি আপলোড করুন
+          <input
+            type="file"
+            onChange={upload}
+            hidden
+          />
+        </label>
 
-      <button
-        onClick={download}
-        style={{
-          padding: "12px 25px",
-          background: "red",
-          color: "white",
-          border: "none"
-        }}
-      >
-        HD Download
-      </button>
+
+        <div style={styles.canvasBox}>
+
+          <canvas id="canvas" style={styles.canvas}/>
+
+        </div>
+
+
+        <button
+          onClick={download}
+          style={styles.downloadBtn}
+        >
+          HD Download
+        </button>
+
+      </div>
 
     </div>
 
   );
 
 }
+
+
+const styles = {
+
+  container: {
+
+    minHeight: "100vh",
+
+    background:
+      "linear-gradient(135deg,#2b0000,#7A0C1C,#2b0000)",
+
+    display: "flex",
+
+    justifyContent: "center",
+
+    alignItems: "center",
+
+    padding: "20px"
+
+  },
+
+
+  card: {
+
+    background: "rgba(255,255,255,0.05)",
+
+    backdropFilter: "blur(10px)",
+
+    padding: "30px",
+
+    borderRadius: "15px",
+
+    textAlign: "center",
+
+    boxShadow: "0 0 30px rgba(255,0,0,0.4)"
+
+  },
+
+
+  title: {
+
+    color: "#fff",
+
+    marginBottom: "5px"
+
+  },
+
+
+  subtitle: {
+
+    color: "#ffcccc",
+
+    marginBottom: "20px"
+
+  },
+
+
+  uploadBtn: {
+
+    display: "inline-block",
+
+    padding: "12px 25px",
+
+    background:
+      "linear-gradient(45deg,#ff0000,#b30000)",
+
+    color: "#fff",
+
+    borderRadius: "8px",
+
+    cursor: "pointer",
+
+    marginBottom: "20px"
+
+  },
+
+
+  canvasBox: {
+
+    border: "2px solid red",
+
+    borderRadius: "10px",
+
+    boxShadow: "0 0 20px red",
+
+    marginBottom: "20px"
+
+  },
+
+
+  canvas: {
+
+    width: "350px",
+
+    height: "350px"
+
+  },
+
+
+  downloadBtn: {
+
+    padding: "12px 30px",
+
+    background:
+      "linear-gradient(45deg,#ff0000,#660000)",
+
+    color: "#fff",
+
+    border: "none",
+
+    borderRadius: "8px",
+
+    fontSize: "16px",
+
+    cursor: "pointer"
+
+  }
+
+};
