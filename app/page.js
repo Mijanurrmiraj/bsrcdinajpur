@@ -5,83 +5,93 @@ import { fabric } from "fabric";
 
 export default function Home() {
 
-  const canvasEl = useRef(null);
   const containerRef = useRef(null);
   const fabricCanvas = useRef(null);
   const frameObj = useRef(null);
 
-  const CANVAS_SIZE = 1080;
+  const [canvasSize, setCanvasSize] = useState(350);
 
-  const [canvasWidth, setCanvasWidth] = useState(350);
+  const ORIGINAL_SIZE = 2048; // আপনার frame.png resolution (change if needed)
 
-
-  // Responsive resize
+  // responsive resize
   useEffect(() => {
 
-    const resizeCanvas = () => {
+    const resize = () => {
+
+      if (!containerRef.current) return;
 
       const width = containerRef.current.offsetWidth;
 
-      setCanvasWidth(width);
+      setCanvasSize(width);
 
       if (fabricCanvas.current) {
 
-        fabricCanvas.current.setZoom(width / CANVAS_SIZE);
+        fabricCanvas.current.setZoom(width / ORIGINAL_SIZE);
 
         fabricCanvas.current.setWidth(width);
         fabricCanvas.current.setHeight(width);
 
+        fabricCanvas.current.renderAll();
       }
-
     };
 
-    resizeCanvas();
+    resize();
 
-    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("resize", resize);
 
-    return () =>
-      window.removeEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resize);
 
   }, []);
 
 
-  // Initialize fabric
+  // init fabric canvas
   useEffect(() => {
 
     const canvas = new fabric.Canvas("canvas", {
 
-      width: CANVAS_SIZE,
-      height: CANVAS_SIZE,
-      selection: false
+      width: ORIGINAL_SIZE,
+      height: ORIGINAL_SIZE,
+      selection: true
 
     });
 
     fabricCanvas.current = canvas;
 
+    // load frame
     fabric.Image.fromURL("/frame.png", (img) => {
 
-      img.scaleToWidth(CANVAS_SIZE);
+      img.scaleToWidth(ORIGINAL_SIZE);
 
       img.set({
 
         left: 0,
         top: 0,
+
         selectable: false,
-        evented: false
+        evented: false,
+
+        lockMovementX: true,
+        lockMovementY: true,
+        lockScalingX: true,
+        lockScalingY: true,
+        lockRotation: true
 
       });
 
       frameObj.current = img;
 
       canvas.add(img);
+
       canvas.bringToFront(img);
+
+      canvas.renderAll();
 
     });
 
   }, []);
 
 
-  // Upload image
+  // upload photo
   const upload = (e) => {
 
     const file = e.target.files[0];
@@ -92,29 +102,28 @@ export default function Home() {
 
     reader.onload = () => {
 
-      fabric.Image.fromURL("/frame.png", (img) => {
+      fabric.Image.fromURL(reader.result, (img) => {
 
-  img.scaleToWidth(CANVAS_SIZE);
+        img.scaleToWidth(ORIGINAL_SIZE * 0.7);
 
-  img.set({
-    left: 0,
-    top: 0,
-    selectable: false,
-    evented: false,
-    hoverCursor: "default"
-  });
+        img.set({
 
-  frameObj.current = img;
+          left: ORIGINAL_SIZE * 0.15,
+          top: ORIGINAL_SIZE * 0.15,
 
-  fabricCanvas.current.add(img);
+          cornerStyle: "circle",
+          cornerColor: "red",
+          borderColor: "white"
 
-});
+        });
 
         fabricCanvas.current.add(img);
 
         fabricCanvas.current.setActiveObject(img);
 
         fabricCanvas.current.bringToFront(frameObj.current);
+
+        fabricCanvas.current.renderAll();
 
       });
 
@@ -125,21 +134,44 @@ export default function Home() {
   };
 
 
-  // Download HD
+  // HD Download (Original Quality)
   const download = () => {
 
-    const data =
-      fabricCanvas.current.toDataURL({
+    const canvas = fabricCanvas.current;
 
-        format: "png",
-        quality: 1
+    // save current view
+    const zoom = canvas.getZoom();
+    const width = canvas.getWidth();
+    const height = canvas.getHeight();
 
-      });
+    // set original resolution
+    canvas.setZoom(1);
+    canvas.setWidth(ORIGINAL_SIZE);
+    canvas.setHeight(ORIGINAL_SIZE);
 
+    canvas.renderAll();
+
+    const dataURL = canvas.toDataURL({
+
+      format: "png",
+      quality: 1,
+      multiplier: 1
+
+    });
+
+    // restore responsive view
+    canvas.setZoom(zoom);
+    canvas.setWidth(width);
+    canvas.setHeight(height);
+
+    canvas.renderAll();
+
+    // download
     const link = document.createElement("a");
 
-    link.href = data;
-    link.download = "bsap-frame.png";
+    link.href = dataURL;
+
+    link.download = "bsap-frame-HD.png";
 
     link.click();
 
@@ -157,37 +189,24 @@ export default function Home() {
         </h1>
 
         <p style={styles.subtitle}>
-          ৮ম প্রতিষ্ঠাতা বার্ষিকী ফ্রেম
+          ৮ম প্রতিষ্ঠাতা বার্ষিকী প্রোফাইল ফ্রেম
         </p>
 
 
         <label style={styles.uploadBtn}>
           ছবি আপলোড করুন
-          <input
-            type="file"
-            hidden
-            onChange={upload}
-          />
+          <input type="file" hidden onChange={upload} />
         </label>
 
 
-        <div
-          ref={containerRef}
-          style={styles.canvasContainer}
-        >
+        <div ref={containerRef} style={styles.canvasContainer}>
 
-          <canvas
-            id="canvas"
-            ref={canvasEl}
-          />
+          <canvas id="canvas"/>
 
         </div>
 
 
-        <button
-          onClick={download}
-          style={styles.downloadBtn}
-        >
+        <button onClick={download} style={styles.downloadBtn}>
           HD Download
         </button>
 
@@ -210,9 +229,7 @@ const styles = {
       "linear-gradient(135deg,#2b0000,#7A0C1C,#2b0000)",
 
     display: "flex",
-
     justifyContent: "center",
-
     alignItems: "center",
 
     padding: "15px"
@@ -249,7 +266,6 @@ const styles = {
   subtitle: {
 
     color: "#ffcccc",
-    fontSize: "16px",
     marginBottom: "15px"
 
   },
@@ -304,7 +320,9 @@ const styles = {
 
     borderRadius: "8px",
 
-    fontSize: "16px"
+    fontSize: "16px",
+
+    cursor: "pointer"
 
   }
 
