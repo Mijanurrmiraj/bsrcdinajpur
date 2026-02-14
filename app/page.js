@@ -235,7 +235,7 @@ export default function Home() {
 }
 
 
-const styles = {link: {
+const styles = {
 
   color: "#ffffff",
 
@@ -243,8 +243,7 @@ const styles = {link: {
 
   fontWeight: "bold"
 
-},
-
+}
   container: {
 
     minHeight: "100vh",
