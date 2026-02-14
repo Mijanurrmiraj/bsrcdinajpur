@@ -210,13 +210,13 @@ export default function Home() {
           HD Download
         </button>
 
-     <div style={styles.footer}>
+    <div style={styles.footer}>
 
-  <p>
+  <p style={{margin: "6px 0"}}>
     Powered by <b>BSRC Dinajpur</b>
   </p>
 
-  <p>
+  <p style={{margin: "6px 0"}}>
     Developer:{" "}
     <a
       href="https://facebook.com/mijanurrmiraj"
@@ -235,13 +235,29 @@ export default function Home() {
 }
 
 
-const styles = {
+const styles = {footer: {
+
+  marginTop: "15px",
+
+  paddingTop: "10px",
+
+  borderTop: "1px solid rgba(255,255,255,0.3)",
+
+  color: "#ffcccc",
+
+  fontSize: "14px",
+
+},
+
+link: {
 
   color: "#ffffff",
 
   textDecoration: "none",
 
-  fontWeight: "bold"
+  fontWeight: "bold",
+
+},
 
 }
   container: {
