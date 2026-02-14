@@ -92,19 +92,23 @@ export default function Home() {
 
     reader.onload = () => {
 
-      fabric.Image.fromURL(reader.result, (img) => {
+      fabric.Image.fromURL("/frame.png", (img) => {
 
-        img.scaleToWidth(500);
+  img.scaleToWidth(CANVAS_SIZE);
 
-        img.set({
+  img.set({
+    left: 0,
+    top: 0,
+    selectable: false,
+    evented: false,
+    hoverCursor: "default"
+  });
 
-          left: 300,
-          top: 300,
-          cornerStyle: "circle",
-          cornerColor: "red",
-          borderColor: "white"
+  frameObj.current = img;
 
-        });
+  fabricCanvas.current.add(img);
+
+});
 
         fabricCanvas.current.add(img);
 
