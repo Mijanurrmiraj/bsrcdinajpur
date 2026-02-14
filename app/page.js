@@ -113,24 +113,47 @@ export default function Home() {
 
 
   // download
-  const download = () => {
+ const download = () => {
 
-    const dataURL = fabricCanvas.current.toDataURL({
+  const canvas = fabricCanvas.current;
 
-      format: "png",
-      quality: 1
+  // save current responsive state
+  const currentZoom = canvas.getZoom();
+  const currentWidth = canvas.getWidth();
+  const currentHeight = canvas.getHeight();
 
-    });
+  // set original full resolution
+  canvas.setZoom(1);
+  canvas.setWidth(ORIGINAL_SIZE);
+  canvas.setHeight(ORIGINAL_SIZE);
 
-    const link = document.createElement("a");
+  canvas.renderAll();
 
-    link.href = dataURL;
-    link.download = "bsap-frame-HD.png";
+  // export exact original quality
+  const dataURL = canvas.toDataURL({
 
-    link.click();
+    format: "png",
+    quality: 1,
+    multiplier: 1
 
-  };
+  });
 
+  // restore responsive state
+  canvas.setZoom(currentZoom);
+  canvas.setWidth(currentWidth);
+  canvas.setHeight(currentHeight);
+
+  canvas.renderAll();
+
+  // download
+  const link = document.createElement("a");
+
+  link.href = dataURL;
+  link.download = "bsap-frame-HD.png";
+
+  link.click();
+
+};
 
   return (
 
