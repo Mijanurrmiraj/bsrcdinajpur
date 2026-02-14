@@ -235,7 +235,15 @@ export default function Home() {
 }
 
 
-const styles = {
+const styles = {link: {
+
+  color: "#ffffff",
+
+  textDecoration: "none",
+
+  fontWeight: "bold"
+
+},
 
   container: {
 
